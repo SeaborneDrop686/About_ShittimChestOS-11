@@ -11,10 +11,10 @@ import java.nio.file.*;
 public class Main_Program {
 
     static final String VERSION = "Version 26.2";
-    static final String BUILD = "Build 138A02";
+    static final String BUILD = "Build 163A02";
 
     public static void main(String[] args) {
-        System.out.println("————————————————————————————————————————");
+        System.out.println("————————————————————————————————————————————————————————————————————————————————");
         System.out.println("程序已启动，本窗口用于启动和日志或者错误信息显示");
 
         SwingUtilities.invokeLater(() -> {
@@ -184,7 +184,7 @@ public class Main_Program {
                     "什亭之匣OS 11系统美化帮助",
                     "什亭之匣工具文件夹内容使用帮助（包括日服BA汉化）",
                     "查看该定制操作系统的完整开发人员名单和法律信息",
-                    "系统故障紧急处理检查单"
+                    "操作系统故障快速处理检查单"
             };
 
             int startY = 70;      // 起始Y坐标
@@ -447,14 +447,14 @@ public class Main_Program {
                     JOptionPane.INFORMATION_MESSAGE);
 
             if (result == JOptionPane.YES_OPTION) {
-                System.out.println("正在执行 \"" + scriptPath + "\" python脚本");
+                System.out.println("正在执行 \"" + scriptPath + "\" python脚本\n");
                 new Thread(() -> {
                     try {
                         ProcessBuilder pb = new ProcessBuilder("python", scriptPath);
                         pb.inheritIO();
                         Process p = pb.start();
                         int exitCode = p.waitFor();
-                        System.out.println("Python下载文件脚本执行完成，退出码: " + exitCode);
+                        System.out.println("\nPython下载文件脚本执行完成，退出码: " + exitCode);
                     } catch (Exception e) {
                         System.out.println("无法执行Python脚本: " + scriptPath);
                     }

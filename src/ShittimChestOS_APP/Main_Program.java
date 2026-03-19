@@ -2,8 +2,11 @@ package ShittimChestOS_APP;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
+import javax.sound.sampled.*;
 import java.io.*;
 import java.net.URI;
 import java.nio.file.*;
@@ -12,6 +15,9 @@ public class Main_Program {
 
     static final String VERSION = "Version 26.2";
     static final String BUILD = "Build 163A02";
+
+    // 音效文件
+    private static final String SOUND_FILE = "/click.wav";  // 暂时留空，实际使用时改为具体文件名，如 "/dialog.wav"
 
     public static void main(String[] args) {
         System.out.println("————————————————————————————————————————————————————————————————————————————————");
@@ -43,6 +49,31 @@ public class Main_Program {
         }
     }
 
+    // ==================== 播放音效（异步） ====================
+    private static void playSound() {
+        if (SOUND_FILE == null || SOUND_FILE.isEmpty()) return; // 未配置音效文件时不播放
+        new Thread(() -> {
+            try (InputStream audioStream = Main_Program.class.getResourceAsStream(SOUND_FILE)) {
+                if (audioStream == null) {
+                    System.out.println("无法找到音效文件: " + SOUND_FILE);
+                    return;
+                }
+                AudioInputStream ais = AudioSystem.getAudioInputStream(new BufferedInputStream(audioStream));
+                Clip clip = AudioSystem.getClip();
+                clip.open(ais);
+                clip.start();
+                // 播放结束后自动关闭 Clip
+                clip.addLineListener(event -> {
+                    if (event.getType() == LineEvent.Type.STOP) {
+                        clip.close();
+                    }
+                });
+            } catch (Exception e) {
+                System.out.println("播放音效失败: " + e.getMessage());
+            }
+        }).start();
+    }
+
     static class AboutPanel extends JPanel {
 
         BufferedImage bg;
@@ -51,16 +82,15 @@ public class Main_Program {
         CardLayout cardLayout = new CardLayout();
         JPanel contentPanel = new JPanel(cardLayout);
 
-        // 占位符常量：请根据实际需要修改
         private static final String SUPPORT_URL = "https://space.bilibili.com/3546614589295022";          // 支持作者链接
         private static final String HOMEPAGE_URL = "https://space.bilibili.com/3546614589295022";         // 作者主页链接
-        private static final String[] HELP_PDF_NAMES = {     // 帮助按钮对应的PDF文件名（不含路径）
+        private static final String[] HELP_PDF_NAMES = {     // 帮助按钮对应的PDF文件名
                 "01.pdf", "02.pdf", "03.pdf", "04.pdf"      // 分别对应行2到行5
         };
         private static final String[] COMPONENT_PY_SCRIPTS = {  // 可选组件按钮对应的Python脚本路径
                 "C:\\Windows\\system32\\HelpAboutOS\\D-01.py", "C:\\Windows\\system32\\HelpAboutOS\\D-02.py", "C:\\Windows\\system32\\HelpAboutOS\\D-03.py", "C:\\Windows\\system32\\HelpAboutOS\\D-04.py", "C:\\Windows\\system32\\HelpAboutOS\\D-05.py" // 行1到行5分别对应
         };
-        // PDF文件资源路径（在类路径根目录）
+        // PDF文件资源路径
         private static final String PDF_RESOURCE_PATH = "/About&Author.pdf";
 
         // ========== 主副开发者相关链接 ==========
@@ -102,7 +132,7 @@ public class Main_Program {
             for (String t : tabs) {
                 JButton btn = new JButton(t);
                 btn.setFocusPainted(false);
-                btn.setBackground(new Color(240, 240, 240));
+                btn.setBackground(new Color(240, 240, 240, 255));
                 btn.setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
                 btn.addActionListener(e -> cardLayout.show(contentPanel, t));
                 panel.add(btn);
@@ -304,7 +334,6 @@ public class Main_Program {
             // 主开发者按钮行 (y = 95)
             JButton mainSupportBtn = createSkyBlueButton("支持主开发者", skyBlue);
             mainSupportBtn.setBounds(startX, 95, btnWidth, btnHeight);
-            // 修改：添加对话框
             mainSupportBtn.addActionListener(e -> showSupportDialog("支持主开发者", MAIN_DEV_SUPPORT_URL));
             panel.add(mainSupportBtn);
 
@@ -316,7 +345,6 @@ public class Main_Program {
             // 副开发者按钮行 (y = 125)
             JButton subSupportBtn = createSkyBlueButton("支持副开发者", skyBlue);
             subSupportBtn.setBounds(startX, 125, btnWidth, btnHeight);
-            // 修改：添加对话框
             subSupportBtn.addActionListener(e -> showSupportDialog("支持副开发者", SUB_DEV_SUPPORT_URL));
             panel.add(subSupportBtn);
 
@@ -331,7 +359,96 @@ public class Main_Program {
             pdfBtn.addActionListener(e -> openResourcePDF());
             panel.add(pdfBtn);
 
+            // ===== 右下角的超链接 =====
+            JLabel aboutLink = new JLabel("关于这个软件");
+            aboutLink.setFont(new Font("SansSerif", Font.PLAIN, 12));
+            aboutLink.setForeground(Color.BLUE);
+            aboutLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            // 鼠标悬停效果
+            aboutLink.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    aboutLink.setForeground(new Color(155, 48, 255)); // 蓝紫色
+                }
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    aboutLink.setForeground(Color.BLUE);
+                }
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    showAboutSoftwareDialog(); // 显示关于窗口
+                }
+            });
+            // 放置于右下角
+            aboutLink.setBounds(650, 320, 100, 20);
+            panel.add(aboutLink);
+
             return panel;
+        }
+
+        // ==================== “关于这个软件”窗口 ====================
+        private void showAboutSoftwareDialog() {
+            JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "关于这个软件", true);
+            dialog.setSize(396, 255);
+            dialog.setResizable(false);
+            dialog.setLocationRelativeTo(this); // 居中于父窗口
+
+            // 自定义内容面板，绘制背景图片
+            JPanel content = new JPanel(null) {
+                BufferedImage cloudImage;
+                {
+                    try {
+                        cloudImage = ImageIO.read(getClass().getResourceAsStream("/CloudSurfDuke.png"));
+                        System.out.println("成功加载 \"CloudSurfDuke.png\" 文件");
+                    } catch (IOException e) {
+                        System.out.println("无法加载或找到背景图片 \"CloudSurfDuke.png\"");
+                    }
+                }
+                @Override
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    if (cloudImage != null) {
+                        // 不缩放，直接绘制在左上角
+                        g.drawImage(cloudImage, 0, 0, null);
+                    } else {
+                        g.setColor(Color.LIGHT_GRAY);
+                        g.fillRect(0, 0, getWidth(), getHeight());
+                    }
+                }
+            };
+            content.setBackground(new Color(0,0,0,0)); // 透明，实际由图片覆盖
+
+            // 大标题（居中对齐）
+            JLabel titleLabel = new JLabel("关于这个软件", SwingConstants.CENTER);
+            titleLabel.setFont(new Font("SansSerif", Font.BOLD, 21));
+            titleLabel.setForeground(Color.BLACK);
+            titleLabel.setBounds(93, 15, 182, 30);
+            content.add(titleLabel);
+
+            // 文本描述（左对齐）
+            JLabel line1 = new JLabel("软件版本：V1.2.6");
+            line1.setFont(new Font("SansSerif", Font.PLAIN, 14));
+            line1.setBounds(10, 50, 300, 30);
+            content.add(line1);
+
+            JLabel line2 = new JLabel("开发工具：IntelliJ IDEA、Java17");
+            line2.setFont(new Font("SansSerif", Font.PLAIN, 14));
+            line2.setBounds(10, 67, 300, 30);
+            content.add(line2);
+
+            JLabel line3 = new JLabel("软件开发者：你会Play_games吗");
+            line3.setFont(new Font("SansSerif", Font.PLAIN, 14));
+            line3.setBounds(10, 84, 300, 30);
+            content.add(line3);
+
+            JLabel line4 = new JLabel("相关帮助文稿撰写者：你会Play_games吗");
+            line4.setFont(new Font("SansSerif", Font.PLAIN, 14));
+            line4.setBounds(10, 101, 300, 30);
+            content.add(line4);
+
+            dialog.setContentPane(content);
+            dialog.setVisible(true);
+
         }
 
         // ==================== 通用辅助方法 ====================
@@ -367,8 +484,9 @@ public class Main_Program {
             }
         }
 
-        // 原有支持作者对话框（保持不变）
+        // 原有支持作者对话框（增加音效）
         private void showSupportDialog() {
+            playSound(); // 播放音效
             int result = JOptionPane.showConfirmDialog(this,
                     "该项目还没有单独制作爱发电等赞助方式，如果想支持作者就到作者主页充电支持吧！",
                     "支持作者",
@@ -379,8 +497,9 @@ public class Main_Program {
             }
         }
 
-        // 新增通用对话框方法
+        // 新增通用对话框方法（增加音效）
         private void showSupportDialog(String title, String url) {
+            playSound(); // 播放音效
             int result = JOptionPane.showConfirmDialog(this,
                     "该项目还没有单独制作爱发电等赞助方式，如果想支持作者就到作者主页充电支持吧！",
                     title,
@@ -439,9 +558,12 @@ public class Main_Program {
                 return;
             }
 
+            playSound(); // 播放音效
             int result = JOptionPane.showConfirmDialog(this,
                     "您是否确定下载该内容，可能需要额外的硬盘空间和Internet资源\n" +
-                            "如果您使用流量计费的上网方式可能会造成额外的费用",
+                            "如果您使用流量计费的上网方式可能会造成额外的费用\n\n" +
+                            "您需要在日志窗口（控制台/CMD）继续操作PY下载脚本的运行\n" +
+                            "该过程不为全自动，请按照PY下载脚本的提示选择并下载安装所需的内容",
                     "确认下载",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.INFORMATION_MESSAGE);

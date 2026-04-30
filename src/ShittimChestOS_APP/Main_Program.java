@@ -13,8 +13,8 @@ import java.nio.file.*;
 
 public class Main_Program {
 
-    static final String VERSION = "Version 26.2";
-    static final String BUILD = "Build 163A02";
+    static final String VERSION = "Version 26.2 Miracle";
+    static final String BUILD = "Build 198A02";
 
     // 音效文件
     private static final String SOUND_FILE = "/click.wav";  // 暂时留空，实际使用时改为具体文件名，如 "/dialog.wav"
@@ -310,28 +310,13 @@ public class Main_Program {
             title.setBounds(0, 20, 750, 30);
             panel.add(title);
 
-            // 文本内容（多行）
-            String text = "ShittimChestOS 11 Project\n\n" +
-                    "主开发者：你会Play_games吗\n" +
-                    "副开发者：星野的b站之旅\n\n" +
-                    "该软件UI 设计：ShittimChestOS Team\n" +
-                    "该软件GUI编程：你会Play_games吗\n" +
-                    "该软件版本：V1.2.6\n\n" +
-                    "ShittimChestOS Team © 2026";
-            JTextArea textArea = new JTextArea(text);
-            textArea.setFont(new Font("SansSerif", Font.PLAIN, 14));
-            textArea.setEditable(false);
-            textArea.setOpaque(false);
-            textArea.setBounds(60, 60, 250, 150);
-            panel.add(textArea);
-
             Color skyBlue = new Color(135, 206, 235);
             int btnWidth = 120;
             int btnHeight = 25;
-            int startX = 305; // 按钮起始X
+            int startX = 305;
             int spacing = 10;
 
-            // 主开发者按钮行 (y = 95)
+            // ===== 主开发者按钮 =====
             JButton mainSupportBtn = createSkyBlueButton("支持主开发者", skyBlue);
             mainSupportBtn.setBounds(startX, 95, btnWidth, btnHeight);
             mainSupportBtn.addActionListener(e -> showSupportDialog("支持主开发者", MAIN_DEV_SUPPORT_URL));
@@ -342,7 +327,7 @@ public class Main_Program {
             mainHomeBtn.addActionListener(e -> openWebpage(MAIN_DEV_HOMEPAGE_URL));
             panel.add(mainHomeBtn);
 
-            // 副开发者按钮行 (y = 125)
+            // ===== 副开发者按钮 =====
             JButton subSupportBtn = createSkyBlueButton("支持副开发者", skyBlue);
             subSupportBtn.setBounds(startX, 125, btnWidth, btnHeight);
             subSupportBtn.addActionListener(e -> showSupportDialog("支持副开发者", SUB_DEV_SUPPORT_URL));
@@ -353,33 +338,63 @@ public class Main_Program {
             subHomeBtn.addActionListener(e -> openWebpage(SUB_DEV_HOMEPAGE_URL));
             panel.add(subHomeBtn);
 
-            // PDF按钮
+            // ===== PDF按钮 =====
             JButton pdfBtn = createSkyBlueButton("详细开发人员及法律信息", skyBlue);
-            pdfBtn.setBounds(250, 250, 250, 30);
+            pdfBtn.setBounds(315, 290, 250, 30);
             pdfBtn.addActionListener(e -> openResourcePDF());
             panel.add(pdfBtn);
 
-            // ===== 右下角的超链接 =====
+            // ===== 文本内容（不遮挡按钮“由GTP修改”）=====
+            String text = "ShittimChestOS 11 Project\n\n" +
+                    "主开发者：你会Play_games吗\n" +
+                    "副开发者：星野的b站之旅\n\n" +
+                    "该软件UI 设计：ShittimChestOS Team\n" +
+                    "该软件GUI编程：你会Play_games吗\n" +
+                    "该软件版本：V1.2.6\n\n" +
+                    "一个让您的计算机更macOS、更BA、更Aero、更Win7的定制Windows11操作系统\n" +
+                    "——全世界最大的Windows11操作系统封装镜像\n\n" +
+                    "ShittimChestOS Team © 2026";
+
+            JTextArea textArea = new JTextArea(text);
+            textArea.setFont(new Font("SansSerif", Font.PLAIN, 14));
+            textArea.setEditable(false);
+            textArea.setFocusable(false);
+            textArea.setOpaque(false);
+            textArea.setBorder(null);
+            textArea.setHighlighter(null);
+            textArea.setLineWrap(true);
+            textArea.setWrapStyleWord(true);
+
+            // 放在按钮下方
+            textArea.setBounds(60, 60, 630, 800);
+            panel.add(textArea);
+
+            // 强制放到底层（防止遮挡按钮）
+            panel.setComponentZOrder(textArea, panel.getComponentCount() - 1);
+
+            // ===== 右下角超链接 =====
             JLabel aboutLink = new JLabel("关于这个软件");
             aboutLink.setFont(new Font("SansSerif", Font.PLAIN, 12));
             aboutLink.setForeground(Color.BLUE);
             aboutLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            // 鼠标悬停效果
+
             aboutLink.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseEntered(MouseEvent e) {
-                    aboutLink.setForeground(new Color(155, 48, 255)); // 蓝紫色
+                    aboutLink.setForeground(new Color(155, 48, 255));
                 }
+
                 @Override
                 public void mouseExited(MouseEvent e) {
                     aboutLink.setForeground(Color.BLUE);
                 }
+
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    showAboutSoftwareDialog(); // 显示关于窗口
+                    showAboutSoftwareDialog();
                 }
             });
-            // 放置于右下角
+
             aboutLink.setBounds(650, 320, 100, 20);
             panel.add(aboutLink);
 
